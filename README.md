@@ -190,24 +190,26 @@ To deploy a React.js project using Nginx and MySQL on Ubuntu 22.04, follow these
    Add the following configuration:
    ```nginx
    server {
-       listen 80;
-       server_name your_domain_or_ip;
+    listen 80;
+    server_name your_domain.com;  # or your actual IP address
 
-       root /path/to/your/react-project/build;
-       index index.html;
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
 
-       location / {
-           try_files $uri /index.html;
-       }
-
-       location /api/ {
-           proxy_pass http://localhost:5000;  # Assuming your backend is running on port 5000
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-       }
-   }
+    location /api/ {
+        proxy_pass http://localhost:5000;  # if you have a backend
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
    ```
    Enable the new configuration:
    ```bash
